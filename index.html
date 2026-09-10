@@ -21220,8 +21220,8 @@ function render() {
     data: {
       labels: [
         `Turno A: ${(turnoCounts['Turno A']||0).toLocaleString('pt-BR')} (${total ? Math.round(((turnoCounts['Turno A']||0)/total)*100) : 0}%)`,
-        `Turno B: ${(turnoCounts['Turno B']||0).toLocaleString('pt-BR')} (${total ? Math.round(((turnoCounts['Turno B']/total)*100) : 0}%)`,
-        `Turno C: ${(turnoCounts['Turno C']||0).toLocaleString('pt-BR')} (${total ? Math.round(((turnoCounts['Turno C']/total)*100) : 0}%)`
+        `Turno B: ${(turnoCounts['Turno B']||0).toLocaleString('pt-BR')} (${total ? Math.round(((turnoCounts['Turno B']||0)/total)*100) : 0}%)`,
+        `Turno C: ${(turnoCounts['Turno C']||0).toLocaleString('pt-BR')} (${total ? Math.round(((turnoCounts['Turno C']||0)/total)*100) : 0}%)`
       ],
       datasets: [{
         data: [turnoCounts['Turno A'], turnoCounts['Turno B'], turnoCounts['Turno C']],
