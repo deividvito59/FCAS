@@ -135,6 +135,173 @@ header .sub{
 }
 .filters .reset:hover{filter:brightness(1.1);}
 
+/* NAVEGAÇÃO DE 3 ABAS SUPERIORES (INDÚSTRIA, AGRÍCOLA, MANUTENÇÃO) */
+.domain-tabs-wrapper{
+  margin-bottom:20px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--card-radius);
+  padding:12px 18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px;
+  box-shadow:0 4px 16px rgba(0,0,0,.15);
+}
+.domain-tabs{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.domain-tab{
+  background:var(--card2);
+  border:1px solid var(--border);
+  color:var(--muted);
+  padding:9px 18px;
+  border-radius:12px;
+  font-size:13.5px;
+  font-weight:700;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  transition:all .2s ease;
+  outline:none;
+}
+.domain-tab:hover{
+  border-color:var(--accent);
+  color:var(--text);
+  transform:translateY(-1px);
+}
+.domain-tab.active{
+  background:linear-gradient(135deg,#f7c948 0%,#e0b134 100%);
+  color:#1a1402;
+  border-color:#f7c948;
+  box-shadow:0 4px 14px rgba(247,201,72,.28);
+}
+.domain-tab .badge-wip{
+  background:rgba(231,76,60,.18);
+  color:#ff7675;
+  border:1px solid rgba(231,76,60,.35);
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:20px;
+  letter-spacing:.3px;
+}
+body.light .domain-tab .badge-wip{
+  background:#fee2e2;
+  color:#b91c1c;
+  border-color:#fca5a5;
+}
+.domain-tab.active .badge-active{
+  background:#1a1402;
+  color:#f7c948;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:20px;
+  letter-spacing:.3px;
+}
+.domain-tab-info{
+  font-size:12px;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.domain-pulse{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#00b894;
+  box-shadow:0 0 8px #00b894;
+  display:inline-block;
+}
+
+/* VISIBILIDADE DAS TELAS DE ABAS */
+.tab-content{
+  display:none;
+}
+.tab-content.active{
+  display:block;
+}
+
+/* PAINEL EM CONSTRUÇÃO */
+.wip-panel{
+  background:var(--card);
+  border:1px dashed var(--border);
+  border-radius:var(--card-radius);
+  padding:50px 30px;
+  text-align:center;
+  margin-top:10px;
+  box-shadow:0 4px 18px rgba(0,0,0,.15);
+}
+.wip-icon{
+  font-size:58px;
+  margin-bottom:16px;
+  display:inline-block;
+}
+.wip-title{
+  font-size:22px;
+  font-weight:800;
+  color:var(--text);
+  margin-bottom:10px;
+}
+.wip-desc{
+  font-size:14px;
+  color:var(--muted);
+  max-width:680px;
+  margin:0 auto 24px auto;
+  line-height:1.6;
+}
+.wip-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:rgba(247,201,72,.12);
+  color:var(--accent);
+  border:1px solid var(--accent);
+  padding:7px 16px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+}
+.wip-cards-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+  gap:16px;
+  max-width:900px;
+  margin:28px auto 0 auto;
+  text-align:left;
+}
+.wip-card{
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px 20px;
+}
+.wip-card h4{
+  margin:0 0 6px 0;
+  font-size:14px;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.wip-card p{
+  margin:0;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.4;
+}
+
 /* EXATAMENTE 3 KPIS LADO A LADO */
 .kpis{
   display:grid;
@@ -356,7 +523,7 @@ body.light th{background:#fdf9e7;}
     color: #64748b !important;
     font-size: 10px !important;
   }
-  .filters, .header-actions, .search-box, .btn-action, .reset, #fFatoCard, #fOperadorCard, #activeFilterBadge {
+  .filters, .header-actions, .search-box, .btn-action, .reset, #fFatoCard, #fOperadorCard, #activeFilterBadge, .domain-tabs-wrapper, #tabContentAgricola, #tabContentManutencao {
     display: none !important;
   }
   .container {
@@ -543,6 +710,32 @@ body.light th{background:#fdf9e7;}
   </div>
 </header>
 <div class="container">
+
+  <!-- NAVEGAÇÃO 3 ABAS: INDÚSTRIA, AGRÍCOLA, MANUTENÇÃO -->
+  <div class="domain-tabs-wrapper">
+    <div class="domain-tabs">
+      <button class="domain-tab active" id="tabBtnIndustria" onclick="switchTab('industria')">
+        🏭 Indústria
+        <span class="badge-active">Disponível</span>
+      </button>
+      <button class="domain-tab" id="tabBtnAgricola" onclick="switchTab('agricola')">
+        🌿 Agrícola
+        <span class="badge-wip">Em construção</span>
+      </button>
+      <button class="domain-tab" id="tabBtnManutencao" onclick="switchTab('manutencao')">
+        🔧 Manutenção
+        <span class="badge-wip">Em construção</span>
+      </button>
+    </div>
+    <div class="domain-tab-info">
+      <span class="domain-pulse"></span>
+      <span>FCA's Industria — dados ao vivo</span>
+    </div>
+  </div>
+
+  <!-- ABA: INDÚSTRIA (ativa) -->
+  <div id="tabContentIndustria" class="tab-content active">
+
   <!-- CABEÇALHO CORPORATIVO EXCLUSIVO DO RELATÓRIO PDF -->
   <div class="print-report-header" id="printReportHeader">
     <table>
@@ -703,9 +896,60 @@ body.light th{background:#fdf9e7;}
         <tbody id="tableBody"></tbody>
       </table>
     </div>
-  </div>
-</div>
+  </div><!-- /tabContentIndustria -->
+
+  <!-- ABA: AGRÍCOLA (em construção) -->
+  <div id="tabContentAgricola" class="tab-content">
+    <div class="wip-panel">
+      <div class="wip-icon">🌿</div>
+      <div class="wip-title">FCA's Agrícola — Em Construção</div>
+      <div class="wip-desc">
+        O módulo de Fichas de Controle de Anomalias da área <strong>Agrícola</strong> está sendo desenvolvido.
+        Em breve você poderá acompanhar ocorrências de colheita, irrigação, plantio e operações de campo com os mesmos recursos de análise disponíveis na Indústria.
+      </div>
+      <div class="wip-tag">🚧 Módulo em desenvolvimento</div>
+      <div class="wip-cards-grid">
+        <div class="wip-card"><h4>📋 Coleta de Dados</h4><p>Integração com os formulários FCA de campo e dados de colheita mecânica.</p></div>
+        <div class="wip-card"><h4>🌱 Sub-processos Agrícolas</h4><p>Plantio, colheita, irrigação, defensivos e operações de entressafra.</p></div>
+        <div class="wip-card"><h4>📊 Análises por Talhão</h4><p>Visualização de anomalias por área, talhão e frente de colheita.</p></div>
+      </div>
+    </div>
+  </div><!-- /tabContentAgricola -->
+
+  <!-- ABA: MANUTENÇÃO (em construção) -->
+  <div id="tabContentManutencao" class="tab-content">
+    <div class="wip-panel">
+      <div class="wip-icon">🔧</div>
+      <div class="wip-title">FCA's Manutenção — Em Construção</div>
+      <div class="wip-desc">
+        O módulo de Fichas de Controle de Anomalias da área de <strong>Manutenção</strong> está sendo desenvolvido.
+        Em breve você poderá acompanhar ordens de serviço, falhas de equipamentos e indicadores de manutenção corretiva e preventiva.
+      </div>
+      <div class="wip-tag">🚧 Módulo em desenvolvimento</div>
+      <div class="wip-cards-grid">
+        <div class="wip-card"><h4>⚙️ Falhas de Equipamentos</h4><p>Registro e análise de anomalias em equipamentos industriais por linha e área.</p></div>
+        <div class="wip-card"><h4>🛠️ Manutenção Corretiva</h4><p>Acompanhamento de ordens corretivas, tempo de reparo e impacto na produção.</p></div>
+        <div class="wip-card"><h4>📅 Manutenção Preventiva</h4><p>Controle de inspeções periódicas e desvios do plano preventivo.</p></div>
+      </div>
+    </div>
+  </div><!-- /tabContentManutencao -->
+</div><!-- /container -->
 <script>
+function switchTab(tab) {
+  var tabs = ['industria', 'agricola', 'manutencao'];
+  tabs.forEach(function(t) {
+    var key = t.charAt(0).toUpperCase() + t.slice(1);
+    var content = document.getElementById('tabContent' + key);
+    var btn = document.getElementById('tabBtn' + key);
+    if (t === tab) {
+      if (content) content.classList.add('active');
+      if (btn) btn.classList.add('active');
+    } else {
+      if (content) content.classList.remove('active');
+      if (btn) btn.classList.remove('active');
+    }
+  });
+}
 const palette = ['#f7c948','#0984e3','#00b894','#e74c3c','#a29bfe','#fd79a8','#55efc4','#fab1a0','#74b9ff','#e17055','#81ecec','#ffeaa7','#636e72','#00cec9','#d63031'];
 const fcaRecords = 
 
