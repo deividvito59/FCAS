@@ -356,7 +356,7 @@ body.light th{background:#fdf9e7;}
     color: #64748b !important;
     font-size: 10px !important;
   }
-  .filters, .header-actions, .search-box, .btn-action, .reset, #fFatoCard, #activeFilterBadge {
+  .filters, .header-actions, .search-box, .btn-action, .reset, #fFatoCard, #fOperadorCard, #activeFilterBadge {
     display: none !important;
   }
   .container {
@@ -646,7 +646,15 @@ body.light th{background:#fdf9e7;}
   </div>
   <div class="grid">
     <div class="card">
-      <h3>Operadores com Mais FCAs Registrados</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <h3 style="margin:0;">Operadores com Mais FCAs Registrados</h3>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <label style="font-size:11px; color:var(--muted); text-transform:uppercase; font-weight:600;">Filtrar:</label>
+          <select id="fOperadorCard" onchange="onOperadorCardChange()" style="background:var(--card2); color:var(--text); border:1px solid var(--accent); border-radius:8px; padding:5px 10px; font-size:12px; outline:none; max-width:240px; font-weight:600;">
+            <option value="">Todos os Colaboradores</option>
+          </select>
+        </div>
+      </div>
       <div class="chart-wrap tall"><canvas id="chartOperadores"></canvas></div>
     </div>
     <div class="card">
@@ -20674,6 +20682,69 @@ function getThemeColors() {
   };
 }
 
+const customDataLabelsPlugin = {
+  id: 'customDataLabels',
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    const isLight = document.body.classList.contains('light');
+    const textColor = isLight ? '#0f172a' : '#f8fafc';
+
+    chart.data.datasets.forEach((dataset, datasetIndex) => {
+      const meta = chart.getDatasetMeta(datasetIndex);
+      if (meta.hidden) return;
+
+      meta.data.forEach((element, index) => {
+        const val = dataset.data[index];
+        if (val === undefined || val === null || val === 0) return;
+
+        ctx.save();
+
+        if (chart.config.type === 'bar' && chart.config.options.indexAxis === 'y') {
+          // Barras Horizontais: Rótulo com o total à direita da barra
+          ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
+          ctx.fillStyle = textColor;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(Number(val).toLocaleString('pt-BR'), element.x + 6, element.y);
+        } else if (chart.config.type === 'bar') {
+          // Barras Verticais: Rótulo acima da barra
+          ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
+          ctx.fillStyle = textColor;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(Number(val).toLocaleString('pt-BR'), element.x, element.y - 4);
+        } else if (chart.config.type === 'line') {
+          // Gráfico de Linha: Rótulo acima de cada ponto
+          ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
+          ctx.fillStyle = textColor;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(Number(val).toLocaleString('pt-BR'), element.x, element.y - 7);
+        } else if (chart.config.type === 'doughnut' || chart.config.type === 'pie') {
+          // Pizza / Rosca: Rótulo dentro da fatia
+          const { startAngle, endAngle, outerRadius, innerRadius } = element;
+          const angle = endAngle - startAngle;
+          if (angle > 0.32) {
+            const midAngle = startAngle + angle / 2;
+            const r = innerRadius + (outerRadius - innerRadius) * 0.55;
+            const x = element.x + Math.cos(midAngle) * r;
+            const y = element.y + Math.sin(midAngle) * r;
+            ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+            ctx.shadowBlur = 4;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(Number(val).toLocaleString('pt-BR'), x, y);
+          }
+        }
+        ctx.restore();
+      });
+    });
+  }
+};
+Chart.register(customDataLabelsPlugin);
+
 function destroyChart(key) {
   if (charts[key]) {
     charts[key].destroy();
@@ -20727,6 +20798,34 @@ function onFatoCardChange() {
   render();
 }
 
+function populateOperadoresCard() {
+  const fArea = document.getElementById('fAreaUnidade').value;
+  const fSub = document.getElementById('fSubProcesso').value;
+  const select = document.getElementById('fOperadorCard');
+  if (!select) return;
+
+  const currentOp = select.value;
+  let relevant = fcaRecords;
+  if (fArea) relevant = relevant.filter(r => r.area_unidade === fArea);
+  if (fSub) relevant = relevant.filter(r => r.sub_processo === fSub);
+
+  const operadores = Array.from(new Set(relevant.map(r => r.operador).filter(Boolean))).sort();
+
+  select.innerHTML = '<option value="">Todos os Colaboradores</option>';
+  operadores.forEach(op => {
+    const opt = document.createElement('option');
+    opt.value = op;
+    opt.textContent = op.length > 30 ? op.substring(0, 30) + '…' : op;
+    opt.title = op;
+    if (op === currentOp) opt.selected = true;
+    select.appendChild(opt);
+  });
+}
+
+function onOperadorCardChange() {
+  render();
+}
+
 function getFiltered() {
   const fAreaUnidade = document.getElementById('fAreaUnidade').value;
   const fSubProcesso = document.getElementById('fSubProcesso').value;
@@ -20734,6 +20833,7 @@ function getFiltered() {
   const fDataDe = document.getElementById('fDataDe').value;
   const fDataAte = document.getElementById('fDataAte').value;
   const fFato = document.getElementById('fFatoCard') ? document.getElementById('fFatoCard').value : '';
+  const fOperador = document.getElementById('fOperadorCard') ? document.getElementById('fOperadorCard').value : '';
 
   return fcaRecords.filter(r => {
     if (fAreaUnidade && r.area_unidade !== fAreaUnidade) return false;
@@ -20742,6 +20842,7 @@ function getFiltered() {
     if (fDataDe && r.data < fDataDe) return false;
     if (fDataAte && r.data > fDataAte) return false;
     if (fFato && r.fato !== fFato) return false;
+    if (fOperador && r.operador !== fOperador) return false;
     return true;
   });
 }
@@ -20753,9 +20854,11 @@ function resetFilters() {
   document.getElementById('fDataDe').value = '';
   document.getElementById('fDataAte').value = '';
   if (document.getElementById('fFatoCard')) document.getElementById('fFatoCard').value = '';
+  if (document.getElementById('fOperadorCard')) document.getElementById('fOperadorCard').value = '';
   document.getElementById('tSearch').value = '';
   populateSubProcessos();
   populateFatosCard();
+  populateOperadoresCard();
   render();
 }
 
@@ -20774,6 +20877,7 @@ function render() {
   const fSub = document.getElementById('fSubProcesso').value;
   const fTurno = document.getElementById('fTurno').value;
   const fFato = document.getElementById('fFatoCard') ? document.getElementById('fFatoCard').value : '';
+  const fOperador = document.getElementById('fOperadorCard') ? document.getElementById('fOperadorCard').value : '';
   const activeBadge = document.getElementById('activeFilterBadge');
   
   let labelParts = [];
@@ -20781,6 +20885,7 @@ function render() {
   if (fSub) labelParts.push(fSub);
   if (fTurno) labelParts.push(fTurno);
   if (fFato) labelParts.push(`Fato: ${fFato.length > 25 ? fFato.substring(0,25)+'…' : fFato}`);
+  if (fOperador) labelParts.push(`Colaborador: ${fOperador.length > 25 ? fOperador.substring(0,25)+'…' : fOperador}`);
 
   activeBadge.textContent = labelParts.length > 0 
     ? `Filtrado por: ${labelParts.join(' • ')} (${filtered.length} FCAs)`
@@ -20837,7 +20942,7 @@ function render() {
   charts['subProcesso'] = new Chart(ctxSub, {
     type: 'pie',
     data: {
-      labels: mainSubLabels,
+      labels: mainSubLabels.map((lbl, idx) => `${lbl}: ${mainSubValues[idx].toLocaleString('pt-BR')} (${total ? Math.round((mainSubValues[idx]/total)*100) : 0}%)`),
       datasets: [{
         data: mainSubValues,
         backgroundColor: palette.slice(0, mainSubLabels.length),
@@ -20856,7 +20961,7 @@ function render() {
         },
         tooltip: {
           callbacks: {
-            label: (item) => ` ${item.label}: ${item.raw} FCAs (${total ? Math.round((item.raw/total)*100) : 0}%)`
+            label: (item) => ` ${item.label}`
           }
         }
       }
@@ -20869,7 +20974,11 @@ function render() {
   charts['turno'] = new Chart(ctxTurno, {
     type: 'doughnut',
     data: {
-      labels: ['Turno A (07h-15h)', 'Turno B (15h-22h)', 'Turno C (22h-07h)'],
+      labels: [
+        `Turno A: ${(turnoCounts['Turno A']||0).toLocaleString('pt-BR')} (${total ? Math.round(((turnoCounts['Turno A']||0)/total)*100) : 0}%)`,
+        `Turno B: ${(turnoCounts['Turno B']||0).toLocaleString('pt-BR')} (${total ? Math.round(((turnoCounts['Turno B']/total)*100) : 0}%)`,
+        `Turno C: ${(turnoCounts['Turno C']||0).toLocaleString('pt-BR')} (${total ? Math.round(((turnoCounts['Turno C']/total)*100) : 0}%)`
+      ],
       datasets: [{
         data: [turnoCounts['Turno A'], turnoCounts['Turno B'], turnoCounts['Turno C']],
         backgroundColor: ['#f7c948', '#0984e3', '#00b894'],
@@ -20889,7 +20998,7 @@ function render() {
         },
         tooltip: {
           callbacks: {
-            label: (item) => ` ${item.label}: ${item.raw} FCAs (${total ? Math.round((item.raw/total)*100) : 0}%)`
+            label: (item) => ` ${item.label}`
           }
         }
       }
@@ -20948,6 +21057,7 @@ function render() {
         },
         y: {
           beginAtZero: true,
+          grace: '14%',
           grid: { color: theme.grid },
           ticks: { color: theme.muted, font: { size: 9.5, family: 'Segoe UI' }, precision: 0 }
         }
@@ -20985,6 +21095,7 @@ function render() {
       scales: {
         x: {
           beginAtZero: true,
+          grace: '15%',
           grid: { color: theme.grid },
           ticks: { color: theme.muted, precision: 0, font: { size: 9 } }
         },
@@ -21030,6 +21141,7 @@ function render() {
       scales: {
         x: {
           beginAtZero: true,
+          grace: '15%',
           grid: { color: theme.grid },
           ticks: { color: theme.muted, precision: 0, font: { size: 9 } }
         },
@@ -21074,6 +21186,7 @@ function render() {
       scales: {
         x: {
           beginAtZero: true,
+          grace: '15%',
           grid: { color: theme.grid },
           ticks: { color: theme.muted, precision: 0, font: { size: 9 } }
         },
@@ -21242,16 +21355,19 @@ window.addEventListener('afterprint', () => {
 document.getElementById('fAreaUnidade').addEventListener('change', () => {
   populateSubProcessos();
   populateFatosCard();
+  populateOperadoresCard();
 });
 
 document.getElementById('fSubProcesso').addEventListener('change', () => {
   populateFatosCard();
+  populateOperadoresCard();
 });
 
 window.addEventListener('DOMContentLoaded', () => {
   initTheme();
   populateSubProcessos();
   populateFatosCard();
+  populateOperadoresCard();
   render();
 });
 </script>
