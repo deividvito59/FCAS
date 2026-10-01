@@ -126,6 +126,114 @@ header .sub{
 .filters select:focus, .filters input:focus{
   border-color:var(--accent);
 }
+/* MULTISELECT DROPDOWN - ÁREA / PROCESSO */
+.multiselect-container {
+  position: relative;
+  min-width: 195px;
+}
+.multiselect-trigger {
+  background: var(--card2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  min-width: 195px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  transition: border-color .2s;
+  box-sizing: border-box;
+}
+.multiselect-trigger:hover, .multiselect-trigger.active {
+  border-color: var(--accent);
+}
+.multiselect-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+  font-size: 13px;
+}
+.multiselect-arrow {
+  font-size: 10px;
+  color: var(--muted);
+  transition: transform .2s;
+  margin-left: 6px;
+}
+.multiselect-trigger.active .multiselect-arrow {
+  transform: rotate(180deg);
+}
+.multiselect-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 260px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+  z-index: 1000;
+  display: none;
+  padding: 8px 0;
+}
+body.light .multiselect-dropdown {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+.multiselect-dropdown.show {
+  display: block;
+}
+.multiselect-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 12px 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.ms-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+body.light .ms-btn {
+  color: #b45309;
+}
+.ms-btn:hover {
+  text-decoration: underline;
+}
+.multiselect-options {
+  max-height: 240px;
+  overflow-y: auto;
+}
+.ms-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--text);
+  transition: background .15s;
+  user-select: none;
+}
+.ms-option:hover {
+  background: var(--card2);
+}
+.ms-option input[type=checkbox] {
+  accent-color: var(--accent);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
 .filters .reset{
   background:var(--accent);
   color:#2b2205;
@@ -764,19 +872,21 @@ body.light th{background:#fdf9e7;}
     </div>
     <div class="filter-group">
       <label>Área / Processo</label>
-      <select id="fAreaUnidade" onchange="render()">
-        <option value="">Todas as Áreas</option>
-        <option value="Fábrica de Açúcar CLE">Fábrica de Açúcar CLE</option>
-        <option value="Fábrica de Açúcar QRZ">Fábrica de Açúcar QRZ</option>
-        <option value="Tratamento de Caldo CLE">Tratamento de Caldo CLE</option>
-        <option value="Tratamento de Caldo QRZ">Tratamento de Caldo QRZ</option>
-        <option value="Fábrica de Etanol CLE">Fábrica de Etanol CLE</option>
-        <option value="Fábrica de Etanol QRZ">Fábrica de Etanol QRZ</option>
-        <option value="Extração de Caldo CLE">Extração de Caldo CLE</option>
-        <option value="Extração de Caldo QRZ">Extração de Caldo QRZ</option>
-        <option value="Geração de Vapor CLE">Geração de Vapor CLE</option>
-        <option value="Geração de Vapor QRZ">Geração de Vapor QRZ</option>
-      </select>
+      <div class="multiselect-container" id="msAreaContainer">
+        <div class="multiselect-trigger" id="msAreaTrigger" onclick="toggleAreaDropdown(event)">
+          <span class="multiselect-label" id="msAreaLabel">Todas as Áreas</span>
+          <span class="multiselect-arrow">▼</span>
+        </div>
+        <div class="multiselect-dropdown" id="msAreaDropdown">
+          <div class="multiselect-actions">
+            <button type="button" class="ms-btn" onclick="selectAllAreas(true)">Marcar Todas</button>
+            <button type="button" class="ms-btn" onclick="selectAllAreas(false)">Desmarcar</button>
+          </div>
+          <div class="multiselect-options" id="msAreaOptions">
+            <!-- Gerado dinamicamente -->
+          </div>
+        </div>
+      </div>
     </div>
     <div class="filter-group">
       <label>Sub-processo</label>
@@ -23295,32 +23405,131 @@ const ALL_AREAS = [
   { val: 'Geração de Vapor QRZ', text: 'Geração de Vapor QRZ', unidade: 'QRZ' }
 ];
 
-function populateAreaUnidade() {
-  const fUni = document.getElementById('fUnidade') ? document.getElementById('fUnidade').value : '';
-  const select = document.getElementById('fAreaUnidade');
-  if (!select) return;
-  const currentVal = select.value;
+let selectedAreasState = [];
 
-  select.innerHTML = '<option value="">Todas as Áreas</option>';
-  ALL_AREAS.forEach(a => {
-    let include = true;
-    if (fUni === 'Clementina' && a.unidade !== 'CLE') include = false;
-    if (fUni === 'Queiroz' && a.unidade !== 'QRZ') include = false;
-    if (include) {
-      const opt = document.createElement('option');
-      opt.value = a.val;
-      opt.textContent = a.text;
-      if (a.val === currentVal) opt.selected = true;
-      select.appendChild(opt);
-    }
+function toggleAreaDropdown(e) {
+  if (e) e.stopPropagation();
+  const dropdown = document.getElementById('msAreaDropdown');
+  const trigger = document.getElementById('msAreaTrigger');
+  if (!dropdown || !trigger) return;
+  const isOpen = dropdown.classList.contains('show');
+  if (isOpen) {
+    dropdown.classList.remove('show');
+    trigger.classList.remove('active');
+  } else {
+    dropdown.classList.add('show');
+    trigger.classList.add('active');
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const container = document.getElementById('msAreaContainer');
+  if (container && !container.contains(e.target)) {
+    const dropdown = document.getElementById('msAreaDropdown');
+    const trigger = document.getElementById('msAreaTrigger');
+    if (dropdown) dropdown.classList.remove('show');
+    if (trigger) trigger.classList.remove('active');
+  }
+});
+
+function getVisibleAreasForCurrentUnidade() {
+  const fUni = document.getElementById('fUnidade') ? document.getElementById('fUnidade').value : '';
+  return ALL_AREAS.filter(a => {
+    if (fUni === 'Clementina' && a.unidade !== 'CLE') return false;
+    if (fUni === 'Queiroz' && a.unidade !== 'QRZ') return false;
+    return true;
+  });
+}
+
+function getSelectedAreas() {
+  return selectedAreasState;
+}
+
+function updateAreaLabel() {
+  const lbl = document.getElementById('msAreaLabel');
+  if (!lbl) return;
+  const visible = getVisibleAreasForCurrentUnidade();
+  
+  if (selectedAreasState.length === 0 || selectedAreasState.length === visible.length) {
+    lbl.textContent = 'Todas as Áreas';
+    lbl.title = 'Todas as Áreas';
+  } else if (selectedAreasState.length === 1) {
+    lbl.textContent = selectedAreasState[0];
+    lbl.title = selectedAreasState[0];
+  } else {
+    lbl.textContent = `${selectedAreasState.length} áreas selecionadas`;
+    lbl.title = selectedAreasState.join(', ');
+  }
+}
+
+function populateAreaUnidade() {
+  const container = document.getElementById('msAreaOptions');
+  if (!container) return;
+  const visible = getVisibleAreasForCurrentUnidade();
+  const visibleVals = visible.map(v => v.val);
+
+  // Filtra as áreas selecionadas anteriormente que continuam visíveis
+  selectedAreasState = selectedAreasState.filter(v => visibleVals.includes(v));
+
+  let html = '';
+  visible.forEach(a => {
+    const isChecked = selectedAreasState.length === 0 || selectedAreasState.includes(a.val);
+    const checkedAttr = isChecked ? 'checked' : '';
+    html += `
+      <label class="ms-option">
+        <input type="checkbox" value="${a.val}" ${checkedAttr} onchange="onAreaCheckboxChange(event)">
+        <span>${a.text}</span>
+      </label>
+    `;
+  });
+  container.innerHTML = html;
+  updateAreaLabel();
+}
+
+function onAreaCheckboxChange(e) {
+  const visible = getVisibleAreasForCurrentUnidade();
+  const checkboxes = document.querySelectorAll('#msAreaOptions input[type="checkbox"]');
+  const checkedVals = [];
+  checkboxes.forEach(cb => {
+    if (cb.checked) checkedVals.push(cb.value);
   });
 
-  if (fUni === 'Clementina' && currentVal.endsWith('QRZ')) select.value = '';
-  if (fUni === 'Queiroz' && currentVal.endsWith('CLE')) select.value = '';
+  if (checkedVals.length === visible.length) {
+    selectedAreasState = []; // significa todas
+  } else if (checkedVals.length === 0) {
+    selectedAreasState = ['__NENHUMA__'];
+  } else {
+    selectedAreasState = checkedVals;
+  }
+  tableCurrentPage = 1;
+  updateAreaLabel();
+  populateSubProcessos();
+  populateFatosCard();
+  populateOperadoresCard();
+  render();
+}
+
+function selectAllAreas(check) {
+  const visible = getVisibleAreasForCurrentUnidade();
+  const checkboxes = document.querySelectorAll('#msAreaOptions input[type="checkbox"]');
+  checkboxes.forEach(cb => { cb.checked = check; });
+
+  if (check) {
+    selectedAreasState = []; // todas
+  } else {
+    selectedAreasState = ['__NENHUMA__'];
+  }
+  tableCurrentPage = 1;
+  updateAreaLabel();
+  populateSubProcessos();
+  populateFatosCard();
+  populateOperadoresCard();
+  render();
 }
 
 function onUnidadeChange() {
   tableCurrentPage = 1;
+  selectedAreasState = [];
   populateAreaUnidade();
   populateSubProcessos();
   populateFatosCard();
@@ -23330,7 +23539,7 @@ function onUnidadeChange() {
 
 function populateSubProcessos() {
   const fUni = document.getElementById('fUnidade') ? document.getElementById('fUnidade').value : '';
-  const fArea = document.getElementById('fAreaUnidade').value;
+  const selectedAreas = getSelectedAreas();
   const currentVal = document.getElementById('fSubProcesso').value;
   const select = document.getElementById('fSubProcesso');
   
@@ -23340,8 +23549,9 @@ function populateSubProcessos() {
   } else if (fUni === 'Queiroz') {
     relevant = relevant.filter(r => r.unidade === 'QRZ' || (r.area_unidade && r.area_unidade.endsWith('QRZ')));
   }
-  if (fArea) {
-    relevant = relevant.filter(r => r.area_unidade === fArea);
+  if (selectedAreas.length > 0) {
+    if (selectedAreas.includes('__NENHUMA__')) relevant = [];
+    else relevant = relevant.filter(r => selectedAreas.includes(r.area_unidade));
   }
 
   const subs = Array.from(new Set(relevant.map(r => r.sub_processo).filter(Boolean))).sort();
@@ -23361,7 +23571,7 @@ function populateSubProcessos() {
 
 function populateFatosCard() {
   const fUni = document.getElementById('fUnidade') ? document.getElementById('fUnidade').value : '';
-  const fArea = document.getElementById('fAreaUnidade').value;
+  const selectedAreas = getSelectedAreas();
   const fSub = document.getElementById('fSubProcesso').value;
   const select = document.getElementById('fFatoCard');
   if (!select) return;
@@ -23373,7 +23583,10 @@ function populateFatosCard() {
   } else if (fUni === 'Queiroz') {
     relevant = relevant.filter(r => r.unidade === 'QRZ' || (r.area_unidade && r.area_unidade.endsWith('QRZ')));
   }
-  if (fArea) relevant = relevant.filter(r => r.area_unidade === fArea);
+  if (selectedAreas.length > 0) {
+    if (selectedAreas.includes('__NENHUMA__')) relevant = [];
+    else relevant = relevant.filter(r => selectedAreas.includes(r.area_unidade));
+  }
   if (fSub) relevant = relevant.filter(r => r.sub_processo === fSub);
 
   const fatos = Array.from(new Set(relevant.map(r => r.fato).filter(f => f && f !== 'Anomalia Operacional'))).sort();
@@ -23398,7 +23611,7 @@ function onFatoCardChange() {
 
 function populateOperadoresCard() {
   const fUni = document.getElementById('fUnidade') ? document.getElementById('fUnidade').value : '';
-  const fArea = document.getElementById('fAreaUnidade').value;
+  const selectedAreas = getSelectedAreas();
   const fSub = document.getElementById('fSubProcesso').value;
   const select = document.getElementById('fOperadorCard');
   if (!select) return;
@@ -23410,7 +23623,10 @@ function populateOperadoresCard() {
   } else if (fUni === 'Queiroz') {
     relevant = relevant.filter(r => r.unidade === 'QRZ' || (r.area_unidade && r.area_unidade.endsWith('QRZ')));
   }
-  if (fArea) relevant = relevant.filter(r => r.area_unidade === fArea);
+  if (selectedAreas.length > 0) {
+    if (selectedAreas.includes('__NENHUMA__')) relevant = [];
+    else relevant = relevant.filter(r => selectedAreas.includes(r.area_unidade));
+  }
   if (fSub) relevant = relevant.filter(r => r.sub_processo === fSub);
 
   const operadores = Array.from(new Set(relevant.map(r => r.operador).filter(Boolean))).sort();
@@ -23435,7 +23651,7 @@ function onOperadorCardChange() {
 
 function getFiltered() {
   const fUni = document.getElementById('fUnidade') ? document.getElementById('fUnidade').value : '';
-  const fAreaUnidade = document.getElementById('fAreaUnidade').value;
+  const selectedAreas = getSelectedAreas();
   const fSubProcesso = document.getElementById('fSubProcesso').value;
   const fTurno = document.getElementById('fTurno').value;
   const fDataDe = document.getElementById('fDataDe').value;
@@ -23453,7 +23669,10 @@ function getFiltered() {
         if (!isQRZ) return false;
       }
     }
-    if (fAreaUnidade && r.area_unidade !== fAreaUnidade) return false;
+    if (selectedAreas.length > 0) {
+      if (selectedAreas.includes('__NENHUMA__')) return false;
+      if (!selectedAreas.includes(r.area_unidade)) return false;
+    }
     if (fSubProcesso && r.sub_processo !== fSubProcesso) return false;
     if (fTurno && r.turno !== fTurno) return false;
     if (fDataDe && r.data < fDataDe) return false;
@@ -23467,7 +23686,7 @@ function getFiltered() {
 function resetFilters() {
   tableCurrentPage = 1;
   if (document.getElementById('fUnidade')) document.getElementById('fUnidade').value = '';
-  document.getElementById('fAreaUnidade').value = '';
+  selectedAreasState = [];
   document.getElementById('fSubProcesso').value = '';
   document.getElementById('fTurno').value = '';
   document.getElementById('fDataDe').value = '';
@@ -23494,7 +23713,7 @@ function render() {
 
   // Badge do escopo ativo
   const fUni = document.getElementById('fUnidade') ? document.getElementById('fUnidade').value : '';
-  const fAreaUnidade = document.getElementById('fAreaUnidade').value;
+  const selectedAreas = getSelectedAreas();
   const fSub = document.getElementById('fSubProcesso').value;
   const fTurno = document.getElementById('fTurno').value;
   const fFato = document.getElementById('fFatoCard') ? document.getElementById('fFatoCard').value : '';
@@ -23503,7 +23722,15 @@ function render() {
   
   let labelParts = [];
   if (fUni) labelParts.push(`Unidade: ${fUni}`);
-  if (fAreaUnidade) labelParts.push(fAreaUnidade);
+  if (selectedAreas.length > 0) {
+    if (selectedAreas.includes('__NENHUMA__')) {
+      labelParts.push('Nenhuma área selecionada');
+    } else if (selectedAreas.length === 1) {
+      labelParts.push(selectedAreas[0]);
+    } else {
+      labelParts.push(`${selectedAreas.length} Áreas Selecionadas`);
+    }
+  }
   if (fSub) labelParts.push(fSub);
   if (fTurno) labelParts.push(fTurno);
   if (fFato) labelParts.push(`Fato: ${fFato.length > 25 ? fFato.substring(0,25)+'…' : fFato}`);
@@ -24128,7 +24355,10 @@ function obterStringDataFiltro() {
 function exportarPDF() {
   const dataStr = obterStringDataFiltro();
   const fUni = document.getElementById('fUnidade') ? document.getElementById('fUnidade').value : '';
-  const fArea = document.getElementById('fAreaUnidade').value || 'Todas as Áreas';
+  const selectedAreas = getSelectedAreas();
+  const fArea = selectedAreas.length > 0 
+    ? (selectedAreas.includes('__NENHUMA__') ? 'Nenhuma área' : selectedAreas.join(', ')) 
+    : 'Todas as Áreas';
   const fSub = document.getElementById('fSubProcesso').value || 'Todos os Sub-processos';
   const fTurno = document.getElementById('fTurno').value || 'Todos os Turnos (A, B, C)';
   
@@ -24172,12 +24402,6 @@ window.addEventListener('beforeprint', () => {
 });
 window.addEventListener('afterprint', () => {
   Object.values(charts).forEach(c => { if (c) { c.resize(); c.update('none'); } });
-});
-
-document.getElementById('fAreaUnidade').addEventListener('change', () => {
-  populateSubProcessos();
-  populateFatosCard();
-  populateOperadoresCard();
 });
 
 document.getElementById('fSubProcesso').addEventListener('change', () => {
