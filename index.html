@@ -947,10 +947,17 @@ body.light th{background:#fdf9e7;}
     </div>
     <div class="card wide">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
-        <h3 style="margin:0;" id="evolucaoTitle">Evolução Mensal de FCAs por Unidade</h3>
-        <span id="evolucaoSubtitle" style="font-size:12px; color:var(--muted); font-weight:600;">Somatória mensal de ocorrências (Clementina vs Queiroz)</span>
+        <div>
+          <h3 style="margin:0;" id="evolucaoTitle">Evolução Mensal de FCAs por Unidade</h3>
+          <span id="evolucaoSubtitle" style="font-size:12px; color:var(--muted); font-weight:600;">Somatória mensal de ocorrências (Clementina vs Queiroz)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button type="button" class="btn-action" id="btnToggleLabels" onclick="toggleLineLabels()" style="font-size:11.5px; padding:5px 12px;">🏷️ Rótulos: <span id="labelModeText">Ativos</span></button>
+          <button type="button" class="btn-action" id="btnToggleMonthlyTable" onclick="toggleMonthlyTable()" style="font-size:11.5px; padding:5px 12px;">📊 Ver Tabela Mensal</button>
+        </div>
       </div>
       <div class="chart-wrap" style="height:320px;"><canvas id="chartEvolucao"></canvas></div>
+      <div id="monthlyTableContainer" style="display:none; margin-top:14px; border-top:1px solid var(--border); padding-top:12px;"></div>
     </div>
   </div>
   <div class="section-title">
@@ -23322,6 +23329,39 @@ function getThemeColors() {
   };
 }
 
+let showLineLabelsState = true;
+let showMonthlyTableState = false;
+
+function toggleLineLabels() {
+  showLineLabelsState = !showLineLabelsState;
+  const txt = document.getElementById('labelModeText');
+  if (txt) txt.textContent = showLineLabelsState ? 'Ativos' : 'Ocultos';
+  const btn = document.getElementById('btnToggleLabels');
+  if (btn) {
+    btn.style.borderColor = showLineLabelsState ? 'var(--accent)' : 'var(--border)';
+    btn.style.color = showLineLabelsState ? 'var(--accent)' : 'var(--muted)';
+  }
+  if (charts['evolucao']) {
+    charts['evolucao'].update();
+  }
+}
+
+function toggleMonthlyTable() {
+  showMonthlyTableState = !showMonthlyTableState;
+  const container = document.getElementById('monthlyTableContainer');
+  const btn = document.getElementById('btnToggleMonthlyTable');
+  if (container) {
+    container.style.display = showMonthlyTableState ? 'block' : 'none';
+  }
+  if (btn) {
+    btn.style.borderColor = showMonthlyTableState ? 'var(--accent)' : 'var(--border)';
+    btn.style.color = showMonthlyTableState ? 'var(--accent)' : 'var(--text)';
+  }
+  if (showMonthlyTableState) {
+    renderMonthlyTable();
+  }
+}
+
 const customDataLabelsPlugin = {
   id: 'customDataLabels',
   afterDatasetsDraw(chart) {
@@ -23329,6 +23369,113 @@ const customDataLabelsPlugin = {
     const isLight = document.body.classList.contains('light');
     const textColor = isLight ? '#0f172a' : '#f8fafc';
 
+    // Gráfico de Linha: Tratamento especial anti-sobreposição com badges coloridos
+    if (chart.config.type === 'line') {
+      if (!showLineLabelsState) return;
+
+      const pointsByColumn = {};
+      const numDatasets = chart.data.datasets.length;
+
+      chart.data.datasets.forEach((dataset, datasetIndex) => {
+        const meta = chart.getDatasetMeta(datasetIndex);
+        if (meta.hidden) return;
+
+        meta.data.forEach((element, index) => {
+          const val = dataset.data[index];
+          if (val === undefined || val === null) return;
+          // Se houver mais de 1 dataset, ignora valores zerados para não embolar na base
+          if (numDatasets > 1 && Number(val) === 0) return;
+
+          if (!pointsByColumn[index]) pointsByColumn[index] = [];
+          pointsByColumn[index].push({
+            val: Number(val),
+            x: element.x,
+            y: element.y,
+            color: dataset.borderColor || textColor,
+            datasetLabel: dataset.label
+          });
+        });
+      });
+
+      const isMultiSeries = numDatasets > 1;
+
+      Object.keys(pointsByColumn).forEach(colIdx => {
+        const points = pointsByColumn[colIdx];
+        if (!points || points.length === 0) return;
+
+        // Ordena por Y crescente (do topo para a base)
+        points.sort((a, b) => a.y - b.y);
+
+        // Deslocamento inteligente anti-colisão (mínimo de 16px entre rótulos)
+        const minSpacing = 16;
+        const assignedY = [];
+
+        for (let i = 0; i < points.length; i++) {
+          let targetY = points[i].y - 8;
+          if (i > 0) {
+            const prevY = assignedY[i - 1];
+            if (targetY < prevY + minSpacing) {
+              targetY = prevY + minSpacing;
+            }
+          }
+          assignedY.push(targetY);
+        }
+
+        // Se o último ponto ultrapassar a parte inferior da área do gráfico, puxa de volta para cima
+        const chartBottom = chart.chartArea ? chart.chartArea.bottom - 6 : 300;
+        if (assignedY.length > 0 && assignedY[assignedY.length - 1] > chartBottom) {
+          const overflow = assignedY[assignedY.length - 1] - chartBottom;
+          for (let i = assignedY.length - 1; i >= 0; i--) {
+            assignedY[i] = assignedY[i] - overflow;
+            if (i < assignedY.length - 1 && assignedY[i] > assignedY[i + 1] - minSpacing) {
+              assignedY[i] = assignedY[i + 1] - minSpacing;
+            }
+          }
+        }
+
+        points.forEach((pt, pIdx) => {
+          const yPos = assignedY[pIdx];
+          const valStr = pt.val.toLocaleString('pt-BR');
+
+          ctx.save();
+          if (isMultiSeries) {
+            ctx.font = 'bold 9.5px "Segoe UI", Arial, sans-serif';
+            const textWidth = ctx.measureText(valStr).width;
+            const pillW = textWidth + 8;
+            const pillH = 14;
+            const pillX = pt.x - pillW / 2;
+            const pillY = yPos - pillH + 3;
+
+            // Fundo da pill com a cor exata da linha correspondente
+            ctx.fillStyle = pt.color;
+            ctx.beginPath();
+            if (ctx.roundRect) {
+              ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+            } else {
+              ctx.rect(pillX, pillY, pillW, pillH);
+            }
+            ctx.fill();
+
+            // Texto branco nítido centralizado
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(valStr, pt.x, pillY + pillH / 2);
+          } else {
+            ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
+            ctx.fillStyle = textColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(valStr, pt.x, pt.y - 6);
+          }
+          ctx.restore();
+        });
+      });
+
+      return; // Linha finalizada
+    }
+
+    // Demais tipos de gráficos (Barras, Pizza, Rosca)
     chart.data.datasets.forEach((dataset, datasetIndex) => {
       const meta = chart.getDatasetMeta(datasetIndex);
       if (meta.hidden) return;
@@ -23338,30 +23485,19 @@ const customDataLabelsPlugin = {
         if (val === undefined || val === null || val === 0) return;
 
         ctx.save();
-
         if (chart.config.type === 'bar' && chart.config.options.indexAxis === 'y') {
-          // Barras Horizontais: Rótulo com o total à direita da barra
           ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
           ctx.fillStyle = textColor;
           ctx.textAlign = 'left';
           ctx.textBaseline = 'middle';
           ctx.fillText(Number(val).toLocaleString('pt-BR'), element.x + 6, element.y);
         } else if (chart.config.type === 'bar') {
-          // Barras Verticais: Rótulo acima da barra
           ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
           ctx.fillStyle = textColor;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
           ctx.fillText(Number(val).toLocaleString('pt-BR'), element.x, element.y - 4);
-        } else if (chart.config.type === 'line') {
-          // Gráfico de Linha: Rótulo acima de cada ponto
-          ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
-          ctx.fillStyle = textColor;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(Number(val).toLocaleString('pt-BR'), element.x, element.y - 7);
         } else if (chart.config.type === 'doughnut' || chart.config.type === 'pie') {
-          // Pizza / Rosca: Rótulo dentro da fatia
           const { startAngle, endAngle, outerRadius, innerRadius } = element;
           const angle = endAngle - startAngle;
           if (angle > 0.32) {
@@ -24063,13 +24199,18 @@ function render() {
         tooltip: {
           mode: 'index',
           intersect: false,
+          itemSort: (a, b) => b.raw - a.raw,
           callbacks: {
             title: (items) => {
               const idx = items[0].dataIndex;
               const ym = sortedMonths[idx];
-              return `Período: ${formattedLabels[idx]} (${ym})`;
+              return `📅 Período: ${formattedLabels[idx]} (${ym})`;
             },
-            label: (item) => ` ${item.dataset.label}: ${Number(item.raw).toLocaleString('pt-BR')} ocorrências`
+            label: (item) => ` ${item.dataset.label}: ${Number(item.raw).toLocaleString('pt-BR')} ocorrências`,
+            footer: (items) => {
+              const sum = items.reduce((acc, it) => acc + (Number(it.raw) || 0), 0);
+              return `\nTotal no mês: ${sum.toLocaleString('pt-BR')} FCAs`;
+            }
           }
         }
       },
@@ -24087,6 +24228,10 @@ function render() {
       }
     }
   });
+
+  if (showMonthlyTableState) {
+    renderMonthlyTable();
+  }
 
   // 5. Gráfico 4: OPERADORES (Top 6)
   const opCounts = {};
@@ -24486,6 +24631,76 @@ document.getElementById('fSubProcesso').addEventListener('change', () => {
   populateFatosCard();
   populateOperadoresCard();
 });
+
+function renderMonthlyTable() {
+  const container = document.getElementById('monthlyTableContainer');
+  if (!container || !charts['evolucao']) return;
+
+  const chart = charts['evolucao'];
+  const labels = chart.data.labels;
+  const datasets = chart.data.datasets;
+
+  if (!labels || labels.length === 0 || !datasets || datasets.length === 0) {
+    container.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:10px;">Sem dados disponíveis no período.</div>';
+    return;
+  }
+
+  const colTotals = new Array(labels.length).fill(0);
+  let grandTotal = 0;
+
+  let html = `
+    <div style="font-weight:700; font-size:12px; margin-bottom:8px; color:var(--text); display:flex; justify-content:space-between; align-items:center;">
+      <span>📋 Detalhamento Numérico Mensal por Série</span>
+      <span style="font-size:11px; color:var(--muted); font-weight:normal;">Valores físicos de ocorrências</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:right;">
+        <thead>
+          <tr style="background:var(--card2); border-bottom:1.5px solid var(--border);">
+            <th style="text-align:left; padding:6px 10px; color:var(--text); font-weight:700;">Área / Unidade</th>
+  `;
+
+  labels.forEach(l => {
+    html += `<th style="padding:6px 8px; color:var(--text); font-weight:700;">${l}</th>`;
+  });
+  html += `<th style="padding:6px 10px; color:var(--accent); font-weight:800; background:rgba(247,201,72,0.08);">Total</th></tr></thead><tbody>`;
+
+  datasets.forEach(ds => {
+    let rowSum = 0;
+    const color = ds.borderColor || '#0984e3';
+    html += `<tr style="border-bottom:1px solid var(--border);">`;
+    html += `<td style="text-align:left; padding:6px 10px; font-weight:600; color:var(--text); white-space:nowrap;">
+      <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:${color}; margin-right:6px;"></span>
+      ${ds.label}
+    </td>`;
+
+    ds.data.forEach((v, idx) => {
+      const valNum = Number(v) || 0;
+      rowSum += valNum;
+      colTotals[idx] += valNum;
+      const opacity = valNum > 0 ? '1' : '0.4';
+      const fontW = valNum > 0 ? '600' : 'normal';
+      html += `<td style="padding:6px 8px; color:var(--text); opacity:${opacity}; font-weight:${fontW};">${valNum.toLocaleString('pt-BR')}</td>`;
+    });
+
+    grandTotal += rowSum;
+    html += `<td style="padding:6px 10px; font-weight:800; color:var(--accent); background:rgba(247,201,72,0.08);">${rowSum.toLocaleString('pt-BR')}</td>`;
+    html += `</tr>`;
+  });
+
+  // Linha de total geral por mês
+  html += `
+    <tr style="background:var(--card2); font-weight:800; border-top:1.5px solid var(--border);">
+      <td style="text-align:left; padding:8px 10px; color:var(--text);">TOTAL MENSAL</td>
+  `;
+  colTotals.forEach(ct => {
+    html += `<td style="padding:8px 8px; color:var(--text); font-weight:800;">${ct.toLocaleString('pt-BR')}</td>`;
+  });
+  html += `<td style="padding:8px 10px; color:var(--accent); font-weight:900; background:rgba(247,201,72,0.15); font-size:12px;">${grandTotal.toLocaleString('pt-BR')}</td>`;
+  html += `</tr></tbody></table></div>`;
+
+  container.innerHTML = html;
+}
 
 window.addEventListener('DOMContentLoaded', () => {
   initTheme();
