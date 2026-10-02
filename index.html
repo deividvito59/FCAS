@@ -23369,12 +23369,13 @@ const customDataLabelsPlugin = {
     const isLight = document.body.classList.contains('light');
     const textColor = isLight ? '#0f172a' : '#f8fafc';
 
-    // Gráfico de Linha: Tratamento especial anti-sobreposição com badges coloridos
+    // Gráfico de Linha: Rótulos inteligentes colados na curva (alta aproximação e anti-sobreposição)
     if (chart.config.type === 'line') {
       if (!showLineLabelsState) return;
 
       const pointsByColumn = {};
       const numDatasets = chart.data.datasets.length;
+      const isMultiSeries = numDatasets > 1;
 
       chart.data.datasets.forEach((dataset, datasetIndex) => {
         const meta = chart.getDatasetMeta(datasetIndex);
@@ -23383,8 +23384,8 @@ const customDataLabelsPlugin = {
         meta.data.forEach((element, index) => {
           const val = dataset.data[index];
           if (val === undefined || val === null) return;
-          // Se houver mais de 1 dataset, ignora valores zerados para não embolar na base
-          if (numDatasets > 1 && Number(val) === 0) return;
+          // Se for multi-série, omite zeros para não poluir a linha de base (valor zero)
+          if (isMultiSeries && Number(val) === 0) return;
 
           if (!pointsByColumn[index]) pointsByColumn[index] = [];
           pointsByColumn[index].push({
@@ -23397,78 +23398,136 @@ const customDataLabelsPlugin = {
         });
       });
 
-      const isMultiSeries = numDatasets > 1;
+      const chartArea = chart.chartArea || { top: 10, bottom: chart.height - 25, left: 10, right: chart.width - 10 };
+
+      // Helper para desenhar badge arredondado na cor da série com texto branco
+      function drawBadge(pt, targetCenterX, targetCenterY) {
+        const valStr = pt.val.toLocaleString('pt-BR');
+        ctx.save();
+        ctx.font = 'bold 9.5px "Segoe UI", Arial, sans-serif';
+        const textWidth = ctx.measureText(valStr).width;
+        const pillW = Math.max(textWidth + 8, 16);
+        const pillH = 14;
+
+        let pillX = targetCenterX - pillW / 2;
+        let pillY = targetCenterY - pillH / 2;
+
+        // Limites de segurança (nunca vazar do canvas nem da área do gráfico)
+        if (pillX + pillW > chart.width - 4) pillX = chart.width - pillW - 4;
+        if (pillX < 4) pillX = 4;
+        if (pillY < chartArea.top) pillY = chartArea.top + 1;
+        if (pillY + pillH > chartArea.bottom) pillY = chartArea.bottom - pillH - 1;
+
+        const pillCenterX = pillX + pillW / 2;
+        const pillCenterY = pillY + pillH / 2;
+
+        // Se houver deslocamento horizontal para evitar sobreposição, traça linha guia sutil até o ponto
+        const dist = Math.hypot(pillCenterX - pt.x, pillCenterY - pt.y);
+        if (dist > 8) {
+          ctx.beginPath();
+          ctx.strokeStyle = pt.color;
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = 0.55;
+          ctx.moveTo(pt.x, pt.y);
+          const edgeX = Math.max(pillX, Math.min(pt.x, pillX + pillW));
+          const edgeY = Math.max(pillY, Math.min(pt.y, pillY + pillH));
+          ctx.lineTo(edgeX, edgeY);
+          ctx.stroke();
+          ctx.globalAlpha = 1.0;
+        }
+
+        // Fundo na cor da linha da série
+        ctx.fillStyle = pt.color;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+        } else {
+          ctx.rect(pillX, pillY, pillW, pillH);
+        }
+        ctx.fill();
+
+        // Borda sutil para contraste
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 0.75;
+        ctx.stroke();
+
+        // Texto nítido centralizado
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(valStr, pillCenterX, pillCenterY);
+        ctx.restore();
+      }
 
       Object.keys(pointsByColumn).forEach(colIdx => {
         const points = pointsByColumn[colIdx];
         if (!points || points.length === 0) return;
 
-        // Ordena por Y crescente (do topo para a base)
-        points.sort((a, b) => a.y - b.y);
-
-        // Deslocamento inteligente anti-colisão (mínimo de 16px entre rótulos)
-        const minSpacing = 16;
-        const assignedY = [];
-
-        for (let i = 0; i < points.length; i++) {
-          let targetY = points[i].y - 8;
-          if (i > 0) {
-            const prevY = assignedY[i - 1];
-            if (targetY < prevY + minSpacing) {
-              targetY = prevY + minSpacing;
-            }
-          }
-          assignedY.push(targetY);
-        }
-
-        // Se o último ponto ultrapassar a parte inferior da área do gráfico, puxa de volta para cima
-        const chartBottom = chart.chartArea ? chart.chartArea.bottom - 6 : 300;
-        if (assignedY.length > 0 && assignedY[assignedY.length - 1] > chartBottom) {
-          const overflow = assignedY[assignedY.length - 1] - chartBottom;
-          for (let i = assignedY.length - 1; i >= 0; i--) {
-            assignedY[i] = assignedY[i] - overflow;
-            if (i < assignedY.length - 1 && assignedY[i] > assignedY[i + 1] - minSpacing) {
-              assignedY[i] = assignedY[i + 1] - minSpacing;
-            }
-          }
-        }
-
-        points.forEach((pt, pIdx) => {
-          const yPos = assignedY[pIdx];
-          const valStr = pt.val.toLocaleString('pt-BR');
-
-          ctx.save();
-          if (isMultiSeries) {
-            ctx.font = 'bold 9.5px "Segoe UI", Arial, sans-serif';
-            const textWidth = ctx.measureText(valStr).width;
-            const pillW = textWidth + 8;
-            const pillH = 14;
-            const pillX = pt.x - pillW / 2;
-            const pillY = yPos - pillH + 3;
-
-            // Fundo da pill com a cor exata da linha correspondente
-            ctx.fillStyle = pt.color;
-            ctx.beginPath();
-            if (ctx.roundRect) {
-              ctx.roundRect(pillX, pillY, pillW, pillH, 4);
-            } else {
-              ctx.rect(pillX, pillY, pillW, pillH);
-            }
-            ctx.fill();
-
-            // Texto branco nítido centralizado
-            ctx.fillStyle = '#ffffff';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(valStr, pt.x, pillY + pillH / 2);
-          } else {
+        // Se for série única, desenha rótulo simples colado logo acima do ponto
+        if (!isMultiSeries) {
+          points.forEach(pt => {
+            const valStr = pt.val.toLocaleString('pt-BR');
+            ctx.save();
             ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
             ctx.fillStyle = textColor;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
             ctx.fillText(valStr, pt.x, pt.y - 6);
+            ctx.restore();
+          });
+          return;
+        }
+
+        // Multi-série: ordena do topo (menor Y) para a base (maior Y)
+        points.sort((a, b) => a.y - b.y);
+
+        // Agrupa estritamente por clusters de colisão real (apenas pontos a menos de 14px de distância em Y)
+        const clusters = [];
+        let currentCluster = [];
+
+        for (let i = 0; i < points.length; i++) {
+          if (currentCluster.length === 0) {
+            currentCluster.push(points[i]);
+          } else {
+            const prevPt = currentCluster[currentCluster.length - 1];
+            if (Math.abs(points[i].y - prevPt.y) < 14) {
+              currentCluster.push(points[i]);
+            } else {
+              clusters.push(currentCluster);
+              currentCluster = [points[i]];
+            }
           }
-          ctx.restore();
+        }
+        if (currentCluster.length > 0) clusters.push(currentCluster);
+
+        // Posiciona cada cluster sem NUNCA afetar pontos fora dele
+        clusters.forEach(cluster => {
+          if (cluster.length === 1) {
+            const pt = cluster[0];
+            // Ponto isolado: Rótulo COLADO diretamente sobre o ponto (distância zero da curva)
+            drawBadge(pt, pt.x, pt.y - 10);
+          } else if (cluster.length === 2) {
+            // 2 pontos muito próximos: afasta lateralmente (esquerda e direita), mantendo altura exata da curva
+            const p0 = cluster[0]; // Maior valor (acima)
+            const p1 = cluster[1]; // Menor valor (abaixo)
+            drawBadge(p0, p0.x - 13, p0.y - 9);
+            drawBadge(p1, p1.x + 13, p1.y - 9);
+          } else if (cluster.length === 3) {
+            // 3 pontos muito próximos: 1 central acima, 1 à esquerda, 1 à direita
+            const p0 = cluster[0];
+            const p1 = cluster[1];
+            const p2 = cluster[2];
+            drawBadge(p0, p0.x, p0.y - 12);
+            drawBadge(p1, p1.x - 14, p1.y - 6);
+            drawBadge(p2, p2.x + 14, p2.y - 6);
+          } else {
+            // 4 ou mais pontos (raro): distribuição compacta de 2 colunas ao redor dos pontos
+            cluster.forEach((pt, idx) => {
+              const xOff = (idx % 2 === 0) ? -14 : 14;
+              const yOff = idx < 2 ? -11 : 5;
+              drawBadge(pt, pt.x + xOff, pt.y + yOff);
+            });
+          }
         });
       });
 
@@ -24020,7 +24079,7 @@ function render() {
 
   const AREA_COLORS = {
     // Clementina
-    'Fábrica de Açúcar CLE': '#f59e0b',
+    'Fábrica de Açúcar CLE': '#eab308',
     'Tratamento de Caldo CLE': '#10b981',
     'Fábrica de Etanol CLE': '#06b6d4',
     'Extração de Caldo CLE': '#ec4899',
@@ -24189,7 +24248,7 @@ function render() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { top: 12, right: 15, bottom: 5, left: 5 } },
+      layout: { padding: { top: 16, right: 24, bottom: 6, left: 6 } },
       plugins: {
         legend: {
           display: true,
