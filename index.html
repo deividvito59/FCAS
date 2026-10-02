@@ -947,7 +947,7 @@ body.light th{background:#fdf9e7;}
     </div>
     <div class="card wide">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
-        <h3 style="margin:0;">Evolução Mensal de FCAs por Unidade</h3>
+        <h3 style="margin:0;" id="evolucaoTitle">Evolução Mensal de FCAs por Unidade</h3>
         <span id="evolucaoSubtitle" style="font-size:12px; color:var(--muted); font-weight:600;">Somatória mensal de ocorrências (Clementina vs Queiroz)</span>
       </div>
       <div class="chart-wrap" style="height:320px;"><canvas id="chartEvolucao"></canvas></div>
@@ -23854,22 +23854,15 @@ function render() {
     }
   });
 
-  // 4. Gráfico 3: EVOLUÇÃO MENSAL COM SOMATÓRIA POR UNIDADE
+  // 4. Gráfico 3: EVOLUÇÃO E TENDÊNCIA POR ÁREA OU UNIDADE
   const fUniEvolucao = document.getElementById('fUnidade') ? document.getElementById('fUnidade').value : '';
-  const monthsSet = new Set();
-  const cleMonthly = {};
-  const qrzMonthly = {};
+  const selectedAreas = getSelectedAreas();
+  const hasSpecificAreas = selectedAreas.length > 0 && !selectedAreas.includes('__NENHUMA__');
 
+  const monthsSet = new Set();
   filtered.forEach(r => {
     if (r.data && r.data.length >= 7) {
-      const ym = r.data.substring(0, 7);
-      monthsSet.add(ym);
-      const isQRZ = r.unidade === 'QRZ' || (r.area_unidade && r.area_unidade.endsWith('QRZ'));
-      if (isQRZ) {
-        qrzMonthly[ym] = (qrzMonthly[ym] || 0) + 1;
-      } else {
-        cleMonthly[ym] = (cleMonthly[ym] || 0) + 1;
-      }
+      monthsSet.add(r.data.substring(0, 7));
     }
   });
 
@@ -23885,10 +23878,70 @@ function render() {
 
   destroyChart('evolucao');
   const ctxEvolucao = document.getElementById('chartEvolucao').getContext('2d');
-
   let evolucaoDatasets = [];
 
-  if (fUniEvolucao === 'Clementina') {
+  const evolucaoTitleEl = document.getElementById('evolucaoTitle');
+  const evolucaoSubtitleEl = document.getElementById('evolucaoSubtitle');
+
+  const AREA_COLORS = {
+    // Clementina
+    'Fábrica de Açúcar CLE': '#f59e0b',
+    'Tratamento de Caldo CLE': '#10b981',
+    'Fábrica de Etanol CLE': '#06b6d4',
+    'Extração de Caldo CLE': '#ec4899',
+    'Geração de Vapor CLE': '#f97316',
+
+    // Queiroz
+    'Fábrica de Açúcar QRZ': '#e11d48',
+    'Tratamento de Caldo QRZ': '#059669',
+    'Fábrica de Etanol QRZ': '#2563eb',
+    'Extração de Caldo QRZ': '#8b5cf6',
+    'Geração de Vapor QRZ': '#d97706'
+  };
+
+  if (hasSpecificAreas) {
+    // MOSTRA A TENDÊNCIA DE CADA ÁREA SELECIONADA INDIVIDUALMENTE (NÃO ACUMULATIVO)
+    if (evolucaoTitleEl) evolucaoTitleEl.textContent = 'Tendência Mensal por Área Selecionada';
+    if (evolucaoSubtitleEl) evolucaoSubtitleEl.textContent = `Tendência individual de ocorrências (${selectedAreas.length} área${selectedAreas.length > 1 ? 's' : ''})`;
+
+    selectedAreas.forEach((areaName, idx) => {
+      const areaMonthly = {};
+      filtered.forEach(r => {
+        if (r.area_unidade === areaName && r.data && r.data.length >= 7) {
+          const ym = r.data.substring(0, 7);
+          areaMonthly[ym] = (areaMonthly[ym] || 0) + 1;
+        }
+      });
+
+      const color = AREA_COLORS[areaName] || palette[idx % palette.length];
+      evolucaoDatasets.push({
+        label: areaName,
+        data: sortedMonths.map(m => areaMonthly[m] || 0),
+        fill: false,
+        borderColor: color,
+        backgroundColor: color,
+        borderWidth: 2.8,
+        tension: 0.35,
+        pointBackgroundColor: '#ffffff',
+        pointBorderColor: color,
+        pointBorderWidth: 2,
+        pointRadius: 4.5,
+        pointHoverRadius: 7
+      });
+    });
+  } else if (fUniEvolucao === 'Clementina') {
+    // SOMATÓRIA ACUMULADA DE CLEMENTINA
+    if (evolucaoTitleEl) evolucaoTitleEl.textContent = 'Evolução Mensal de FCAs - Clementina';
+    if (evolucaoSubtitleEl) evolucaoSubtitleEl.textContent = 'Somatória mensal acumulada da Unidade Clementina (CLE)';
+
+    const cleMonthly = {};
+    filtered.forEach(r => {
+      if (r.data && r.data.length >= 7) {
+        const ym = r.data.substring(0, 7);
+        cleMonthly[ym] = (cleMonthly[ym] || 0) + 1;
+      }
+    });
+
     const gradCle = ctxEvolucao.createLinearGradient(0, 0, 0, 260);
     gradCle.addColorStop(0, 'rgba(247, 201, 72, 0.45)');
     gradCle.addColorStop(1, 'rgba(247, 201, 72, 0.02)');
@@ -23907,6 +23960,18 @@ function render() {
       pointHoverRadius: 7
     });
   } else if (fUniEvolucao === 'Queiroz') {
+    // SOMATÓRIA ACUMULADA DE QUEIROZ
+    if (evolucaoTitleEl) evolucaoTitleEl.textContent = 'Evolução Mensal de FCAs - Queiroz';
+    if (evolucaoSubtitleEl) evolucaoSubtitleEl.textContent = 'Somatória mensal acumulada da Unidade Queiroz (QRZ)';
+
+    const qrzMonthly = {};
+    filtered.forEach(r => {
+      if (r.data && r.data.length >= 7) {
+        const ym = r.data.substring(0, 7);
+        qrzMonthly[ym] = (qrzMonthly[ym] || 0) + 1;
+      }
+    });
+
     const gradQrz = ctxEvolucao.createLinearGradient(0, 0, 0, 260);
     gradQrz.addColorStop(0, 'rgba(9, 132, 227, 0.45)');
     gradQrz.addColorStop(1, 'rgba(9, 132, 227, 0.02)');
@@ -23925,7 +23990,21 @@ function render() {
       pointHoverRadius: 7
     });
   } else {
-    // Ambas as unidades: Apresenta a somatória de cada unidade lado a lado em curvas comparativas
+    // TODAS AS UNIDADES E TODAS AS ÁREAS: Somatória comparativa Clementina vs Queiroz
+    if (evolucaoTitleEl) evolucaoTitleEl.textContent = 'Evolução Mensal de FCAs por Unidade';
+    if (evolucaoSubtitleEl) evolucaoSubtitleEl.textContent = 'Somatória mensal de ocorrências (Clementina vs Queiroz)';
+
+    const cleMonthly = {};
+    const qrzMonthly = {};
+    filtered.forEach(r => {
+      if (r.data && r.data.length >= 7) {
+        const ym = r.data.substring(0, 7);
+        const isQRZ = r.unidade === 'QRZ' || (r.area_unidade && r.area_unidade.endsWith('QRZ'));
+        if (isQRZ) qrzMonthly[ym] = (qrzMonthly[ym] || 0) + 1;
+        else cleMonthly[ym] = (cleMonthly[ym] || 0) + 1;
+      }
+    });
+
     const gradCle = ctxEvolucao.createLinearGradient(0, 0, 0, 260);
     gradCle.addColorStop(0, 'rgba(247, 201, 72, 0.35)');
     gradCle.addColorStop(1, 'rgba(247, 201, 72, 0.02)');
