@@ -81,9 +81,10 @@ header .sub{
   color:#1a1402;
 }
 .container{
-  padding:24px 32px;
-  max-width:1600px;
-  margin:0 auto;
+  padding:20px 24px;
+  width:100%;
+  max-width:100%;
+  margin:0;
 }
 .print-report-header{
   display:none;
@@ -605,50 +606,62 @@ body.light th{background:#fdf9e7;}
    ========================================================================== */
 @media print {
   @page {
-    size: A4 portrait;
-    margin: 8mm 10mm;
+    size: A4 landscape;
+    margin: 6mm 8mm;
   }
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     box-sizing: border-box !important;
   }
-  body {
+  html, body {
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background: #ffffff !important;
     color: #0f172a !important;
-    font-size: 10px !important;
-    min-height: auto !important;
+    font-size: 11px !important;
   }
   header {
     background: none !important;
     border-bottom: 2.5px solid #f7c948 !important;
-    padding: 4px 0 6px !important;
-    margin-bottom: 6px !important;
+    padding: 4px 0 8px !important;
+    margin-bottom: 8px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
   }
   header h1 {
     color: #0f172a !important;
-    font-size: 19px !important;
+    font-size: 22px !important;
     font-weight: 800 !important;
+    margin: 0 !important;
   }
   header .sub {
-    color: #64748b !important;
-    font-size: 10px !important;
+    color: #475569 !important;
+    font-size: 11px !important;
+    margin-top: 2px !important;
   }
-  .filters, .header-actions, .search-box, .btn-action, .reset, #fFatoCard, #fOperadorCard, #activeFilterBadge, .domain-tabs-wrapper, #tabContentAgricola, #tabContentManutencao {
+  .filters, .header-actions, .search-box, .btn-action, .reset, #fFatoCard, #fOperadorCard, #activeFilterBadge, .domain-tabs-wrapper, #tabContentAgricola, #tabContentManutencao, #monthlyTableContainer {
     display: none !important;
   }
   .container {
     padding: 0 !important;
+    width: 100% !important;
     max-width: 100% !important;
+    margin: 0 !important;
   }
   .print-report-header {
     display: block !important;
-    margin: 4px 0 8px 0 !important;
-    padding: 6px 10px !important;
+    margin: 4px 0 10px 0 !important;
+    padding: 8px 12px !important;
     background: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 6px !important;
-    font-size: 10px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    width: 100% !important;
   }
   .print-report-header table {
     width: 100% !important;
@@ -656,130 +669,147 @@ body.light th{background:#fdf9e7;}
   }
   .print-report-header td {
     border: none !important;
-    padding: 2px 4px !important;
-    color: #334155 !important;
+    padding: 3px 6px !important;
+    color: #1e293b !important;
+    font-size: 11px !important;
   }
   .kpis {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
-    gap: 8px !important;
-    margin-bottom: 10px !important;
+    gap: 12px !important;
+    margin-bottom: 12px !important;
+    width: 100% !important;
   }
   .kpi {
     background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 6px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px !important;
     box-shadow: none !important;
-    padding: 8px 10px !important;
+    padding: 10px 14px !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
   .kpi::before {
-    width: 3.5px !important;
+    width: 5px !important;
   }
   .kpi .tag {
-    font-size: 8.5px !important;
-    margin-bottom: 2px !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    margin-bottom: 4px !important;
   }
   .kpi .val {
     color: #0f172a !important;
-    font-size: 18px !important;
+    font-size: 24px !important;
+    font-weight: 800 !important;
   }
   .kpi .lbl {
-    font-size: 9px !important;
-    margin-top: 1px !important;
-    color: #64748b !important;
+    font-size: 10.5px !important;
+    margin-top: 3px !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
   }
   .kpi .sub-val {
-    font-size: 8.5px !important;
-    margin-top: 1px !important;
-    color: #94a3b8 !important;
+    font-size: 10px !important;
+    margin-top: 2px !important;
+    color: #64748b !important;
   }
   .section-title {
     color: #0f172a !important;
-    border-bottom: 1.5px solid #cbd5e1 !important;
-    margin: 6px 0 4px !important;
-    padding-bottom: 2px !important;
-    font-size: 10px !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    margin: 14px 0 10px !important;
+    padding-bottom: 4px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    page-break-before: always !important;
+    break-before: always !important;
     page-break-after: avoid !important;
     break-after: avoid !important;
   }
   .grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 6px !important;
-    margin-bottom: 6px !important;
+    gap: 12px !important;
+    margin-bottom: 12px !important;
+    width: 100% !important;
   }
   .card {
     background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 5px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px !important;
     box-shadow: none !important;
-    padding: 6px 8px !important;
+    padding: 10px 14px !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     overflow: hidden !important;
+    width: 100% !important;
   }
   .card h3 {
     color: #0f172a !important;
-    font-size: 9.5px !important;
-    margin: 0 0 3px !important;
-    padding-left: 4px !important;
-    border-left-width: 2px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    margin: 0 0 6px !important;
+    padding-left: 6px !important;
+    border-left: 3.5px solid #f7c948 !important;
   }
   .card.wide {
     grid-column: span 2 !important;
   }
   .chart-wrap {
-    height: 125px !important;
-    max-height: 125px !important;
+    height: 185px !important;
+    max-height: 185px !important;
     position: relative !important;
     overflow: hidden !important;
+    width: 100% !important;
   }
   .chart-wrap.tall {
-    height: 130px !important;
-    max-height: 130px !important;
+    height: 200px !important;
+    max-height: 200px !important;
     position: relative !important;
     overflow: hidden !important;
+    width: 100% !important;
   }
   canvas {
     max-height: 100% !important;
     max-width: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
   }
   .card-table-wrap {
-    page-break-before: auto !important;
-    break-before: auto !important;
-    margin-top: 8px !important;
+    page-break-before: always !important;
+    break-before: always !important;
+    margin-top: 14px !important;
   }
   .table-toolbar {
-    margin-bottom: 4px !important;
+    margin-bottom: 8px !important;
   }
   .table-toolbar h3 {
-    font-size: 10.5px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
     color: #0f172a !important;
   }
   .table-scroll {
     max-height: none !important;
     overflow: visible !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 6px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px !important;
   }
   table {
     width: 100% !important;
-    font-size: 8.5px !important;
+    font-size: 9.5px !important;
     border-collapse: collapse !important;
   }
   th {
     background: #f1f5f9 !important;
     color: #0f172a !important;
-    font-size: 8px !important;
-    padding: 4px 5px !important;
-    border-bottom: 1.5px solid #cbd5e1 !important;
+    font-size: 9.5px !important;
+    font-weight: 700 !important;
+    padding: 6px 8px !important;
+    border-bottom: 2px solid #cbd5e1 !important;
     position: static !important;
   }
   td {
-    padding: 3px 5px !important;
-    border-bottom: 1px solid #f1f5f9 !important;
+    padding: 5px 8px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
     color: #1e293b !important;
   }
   tr {
@@ -787,16 +817,17 @@ body.light th{background:#fdf9e7;}
     break-inside: avoid !important;
   }
   .badge {
-    padding: 1.5px 5px !important;
-    font-size: 8px !important;
+    padding: 2px 7px !important;
+    font-size: 9px !important;
     border: 1px solid #cbd5e1 !important;
     background: #f8fafc !important;
     color: #334155 !important;
+    border-radius: 12px !important;
   }
   .badge.cle { color: #0284c7 !important; border-color: #bae6fd !important; background: #f0f9ff !important; }
   .badge.qrz { color: #059669 !important; border-color: #a7f3d0 !important; background: #ecfdf5 !important; }
-  .cell-fato { color: #0f172a !important; font-size: 8.5px !important; }
-  .cell-acao { color: #047857 !important; font-size: 8.5px !important; }
+  .cell-fato { color: #0f172a !important; font-size: 9.5px !important; }
+  .cell-acao { color: #047857 !important; font-size: 9.5px !important; font-weight: 600 !important; }
 }
 
 @media(max-width:980px){
@@ -4851,9 +4882,9 @@ const fcaRecords =
         "turno":  "Turno C",
         "operador":  "Joao Antonio Da Silva Neto",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Cozimento de Massa B] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Cozimento de Massa B)",
+        "fato_sub":  "[Cozimento de Massa B] Rotina Operacional (Cozimento de Massa B)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  269,
@@ -4893,9 +4924,9 @@ const fcaRecords =
         "turno":  "Turno A",
         "operador":  "Operador COI - Turno A",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Fábrica de Açúcar] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional",
+        "fato_sub":  "[Fábrica de Açúcar] Rotina Operacional",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  272,
@@ -4937,7 +4968,7 @@ const fcaRecords =
         "equipamento":  "",
         "fato":  "Temperatura do vapor de escape \u003c 135 ºC",
         "fato_sub":  "[Evaporação] Temperatura do vapor de escape \u003c 135 ºC",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  275,
@@ -19439,9 +19470,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1311,
@@ -19481,9 +19512,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1314,
@@ -19495,9 +19526,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1315,
@@ -19551,9 +19582,9 @@ const fcaRecords =
         "turno":  "Turno C",
         "operador":  "MATHEUS GRANGEIRO DA SILVA",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1319,
@@ -19593,9 +19624,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "FERNANDO HENRIQUE BRITO",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1322,
@@ -19677,9 +19708,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1328,
@@ -19719,9 +19750,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1331,
@@ -19761,9 +19792,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "FERNANDO HENRIQUE BRITO",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1334,
@@ -19789,9 +19820,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "FERNANDO HENRIQUE BRITO",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1336,
@@ -19817,9 +19848,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1338,
@@ -19845,9 +19876,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1340,
@@ -20027,9 +20058,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1353,
@@ -20111,9 +20142,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "FRANCILANDIO JOSÉ VIERA",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1359,
@@ -20167,9 +20198,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1363,
@@ -20265,9 +20296,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1370,
@@ -20321,9 +20352,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1374,
@@ -20405,9 +20436,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "FERNANDO HENRIQUE BRITO",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1380,
@@ -20489,9 +20520,9 @@ const fcaRecords =
         "turno":  "Turno A",
         "operador":  "CICERO EDMAR FRANCELINO",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1386,
@@ -20559,9 +20590,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1391,
@@ -20671,9 +20702,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "FERNANDO HENRIQUE BRITO",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1399,
@@ -20769,9 +20800,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1406,
@@ -20783,9 +20814,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1407,
@@ -20853,9 +20884,9 @@ const fcaRecords =
         "turno":  "Turno C",
         "operador":  "SEBASTIAO PROCOPIO DA SILVA",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1412,
@@ -20867,9 +20898,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "MICHEL LOPES CELISSE",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1413,
@@ -20937,9 +20968,9 @@ const fcaRecords =
         "turno":  "Turno A",
         "operador":  "LUCIANO DOS SANTOS FURTADO",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1418,
@@ -20993,9 +21024,9 @@ const fcaRecords =
         "turno":  "Turno A",
         "operador":  "CICERO EDMAR FRANCELINO",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1422,
@@ -21007,9 +21038,9 @@ const fcaRecords =
         "turno":  "Turno A",
         "operador":  "CICERO EDMAR FRANCELINO",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1423,
@@ -21091,9 +21122,9 @@ const fcaRecords =
         "turno":  "Turno C",
         "operador":  "GILMAR GOMES DO NASCIMENTO",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Alimentação de água e Desaeração] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional (Alimentação de água e Desaeração)",
+        "fato_sub":  "[Alimentação de água e Desaeração] Rotina Operacional (Alimentação de água e Desaeração)",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1429,
@@ -21175,9 +21206,9 @@ const fcaRecords =
         "turno":  "Turno B",
         "operador":  "Gilson Barboza",
         "equipamento":  "",
-        "fato":  "Anomalia Operacional",
-        "fato_sub":  "[Geração de Vapor] Anomalia Operacional",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "fato":  "Rotina Operacional",
+        "fato_sub":  "[Geração de Vapor] Rotina Operacional",
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1435,
@@ -22633,7 +22664,7 @@ const fcaRecords =
         "equipamento":  "",
         "fato":  "Baumé \u003e 10",
         "fato_sub":  "[Calagem] Baumé \u003e 10",
-        "acao":  "AÃ§Ã£o registrada pelo operador"
+        "acao":  "Acompanhamento e controle de rotina operacional"
     },
     {
         "id":  1539,
@@ -24658,33 +24689,39 @@ function exportarPDF() {
   const nomePdf = `Relatório de FCA'S (${dataStr})`;
   document.title = nomePdf;
 
+  prepareChartsForPrint();
+
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      document.title = originalTitle;
+      restoreChartsAfterPrint();
+    }, 1500);
+  }, 350);
+}
+
+function prepareChartsForPrint() {
+  Chart.defaults.devicePixelRatio = 3.5;
   Object.values(charts).forEach(c => {
     if (c) {
       c.resize();
       c.update('none');
     }
   });
-
-  setTimeout(() => {
-    window.print();
-    setTimeout(() => {
-      document.title = originalTitle;
-      Object.values(charts).forEach(c => {
-        if (c) {
-          c.resize();
-          c.update('none');
-        }
-      });
-    }, 1500);
-  }, 200);
 }
 
-window.addEventListener('beforeprint', () => {
-  Object.values(charts).forEach(c => { if (c) { c.resize(); c.update('none'); } });
-});
-window.addEventListener('afterprint', () => {
-  Object.values(charts).forEach(c => { if (c) { c.resize(); c.update('none'); } });
-});
+function restoreChartsAfterPrint() {
+  Chart.defaults.devicePixelRatio = window.devicePixelRatio || 1;
+  Object.values(charts).forEach(c => {
+    if (c) {
+      c.resize();
+      c.update('none');
+    }
+  });
+}
+
+window.addEventListener('beforeprint', prepareChartsForPrint);
+window.addEventListener('afterprint', restoreChartsAfterPrint);
 
 document.getElementById('fSubProcesso').addEventListener('change', () => {
   populateFatosCard();
